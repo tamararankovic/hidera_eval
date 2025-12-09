@@ -1,0 +1,26 @@
+[
+  {
+    "protocol": "hi",
+    "exp_name": "dummy",
+    "nodes_count": 10,
+    "latency": 50,
+    "repeat": 5,
+    "stabilization_wait": 20,
+    "event_wait": 10,
+    "event": "noop",
+    "end_wait": 20,
+    "loss": 5
+  },
+  {
+    "protocol": "fu",
+    "exp_name": "dummy",
+    "nodes_count": 10,
+    "latency": 50,
+    "repeat": 5,
+    "stabilization_wait": 20,
+    "event_wait": 10,
+    "event": "noop",
+    "end_wait": 20,
+    "loss": 10
+  }
+]
