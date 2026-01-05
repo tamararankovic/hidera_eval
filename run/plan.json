@@ -1,0 +1,17 @@
+[
+  {
+    "overlay_group": "group_1",
+    "protocol": "hi",
+    "exp_name": "dummy",
+    "nodes_count": 10,
+    "avg_degree": 3,
+    "latency": 50,
+    "repeat": 1,
+    "stabilization_wait": 20,
+    "event_wait": 10,
+    "event": "noop",
+    "end_wait": 20,
+    "loss": 10,
+    "env_file": "params/hidera.env"
+  }
+]
