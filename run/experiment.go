@@ -184,5 +184,15 @@ func analyzePlotAndExport(job Job) {
 
 	if err := cmd.Run(); err != nil {
 		log.Printf("failed to analzye and plot: %v\n", err)
+		return
+	}
+
+	scpCmd := exec.Command(
+		"scp", "-r",
+		fmt.Sprintf("%s:%s/%s_plots", FRONTEND_HOSTNAME, EXPERIMENT_DATA_BASE_PATH, job.ExperimanetName),
+		fmt.Sprintf("../export/"),
+	)
+	if err := scpCmd.Run(); err != nil {
+		log.Printf("failed to export plot: %v\n", err)
 	}
 }
