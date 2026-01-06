@@ -77,7 +77,7 @@ type JobPlan struct {
 	EventWaitS       int      `json:"event_wait"`
 	EventName        string   `json:"event"`
 	AfterEventWaitMS int      `json:"end_wait"`
-	EnvFile          string   `json:"env_file"`
+	EnvFile          string   `json:"params"`
 	Graph            Graph    `json:"graph"`
 }
 

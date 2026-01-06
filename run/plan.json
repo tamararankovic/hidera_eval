@@ -5,13 +5,13 @@
     "exp_name": "dummy",
     "nodes_count": 10,
     "avg_degree": 3,
-    "latency": 50,
     "repeat": 1,
+    "latency": 50,
+    "loss": 10,
+    "params": "params/hidera.env",
     "stabilization_wait": 20,
     "event_wait": 10,
     "event": "noop",
-    "end_wait": 20,
-    "loss": 10,
-    "env_file": "params/hidera.env"
+    "end_wait": 20
   }
 ]
