@@ -27,3 +27,20 @@ func readCSV(path string) ([][]string, error) {
 
 	return records, nil
 }
+
+func mapKeysInt64[M ~map[int64]V, V any](m M) []int64 {
+	keys := make([]int64, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+func containsString(xs []string, v string) bool {
+	for _, x := range xs {
+		if x == v {
+			return true
+		}
+	}
+	return false
+}

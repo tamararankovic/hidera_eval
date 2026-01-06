@@ -5,14 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"maps"
 	"os"
-	"slices"
+	"sort"
 	"strconv"
 	"strings"
 )
 
 const EXPERIMENT_DATA_BASE_PATH = "/home/tamara/experiments"
+
 // const EXPERIMENT_DATA_BASE_PATH = "/Users/tamararankovic/Documents/monitoring/impl/hidera_eval/tmp"
 
 var protocols = []string{"hi", "fu", "ep", "dd", "rr"}
@@ -284,9 +284,7 @@ func makeValuesSeries(data map[string]map[string]*RepetitionData) {
 				}
 				for _, point := range nodeData.Values {
 					event := findActiveEvent(point.Timestamp, metadata.Events)
-					if event != nil && slices.ContainsFunc(event.ExcludeNodes, func(name string) bool {
-						return name == nodeName
-					}) {
+					if event != nil && containsString(event.ExcludeNodes, nodeName) {
 						continue
 					}
 					sum[point.Timestamp] += point.Value
@@ -296,8 +294,10 @@ func makeValuesSeries(data map[string]map[string]*RepetitionData) {
 				}
 			}
 
-			timestamps := slices.Collect(maps.Keys(sum))
-			slices.Sort(timestamps)
+			timestamps := mapKeysInt64(sum)
+			sort.Slice(timestamps, func(i, j int) bool {
+				return timestamps[i] < timestamps[j]
+			})
 
 			for _, ts := range timestamps {
 				values[protocol][nodeName] = append(
@@ -310,8 +310,10 @@ func makeValuesSeries(data map[string]map[string]*RepetitionData) {
 			}
 		}
 
-		timestamps := slices.Collect(maps.Keys(totalSum))
-		slices.Sort(timestamps)
+		timestamps := mapKeysInt64(totalSum)
+		sort.Slice(timestamps, func(i, j int) bool {
+			return timestamps[i] < timestamps[j]
+		})
 
 		for _, ts := range timestamps {
 			averagedValues[protocol] = append(
@@ -386,7 +388,7 @@ func makeMsgCountAndRate(data map[string]map[string]*RepetitionData) {
 
 				for _, row := range nodeData.MsgCounts {
 					event := findActiveEvent(row.Timestamp, metadata.Events)
-					if event != nil && slices.Contains(event.ExcludeNodes, nodeName) {
+					if event != nil && containsString(event.ExcludeNodes, nodeName) {
 						continue
 					}
 
@@ -400,8 +402,10 @@ func makeMsgCountAndRate(data map[string]map[string]*RepetitionData) {
 				}
 			}
 
-			timestamps := slices.Collect(maps.Keys(sumSent))
-			slices.Sort(timestamps)
+			timestamps := mapKeysInt64(sumSent)
+			sort.Slice(timestamps, func(i, j int) bool {
+				return timestamps[i] < timestamps[j]
+			})
 
 			for _, ts := range timestamps {
 				msgCounts[protocol][nodeName] = append(
@@ -415,8 +419,10 @@ func makeMsgCountAndRate(data map[string]map[string]*RepetitionData) {
 			}
 		}
 
-		timestamps := slices.Collect(maps.Keys(totalSent))
-		slices.Sort(timestamps)
+		timestamps := mapKeysInt64(totalSent)
+		sort.Slice(timestamps, func(i, j int) bool {
+			return timestamps[i] < timestamps[j]
+		})
 
 		for _, ts := range timestamps {
 			avgMsgCounts[protocol] = append(
