@@ -73,12 +73,12 @@ type JobPlan struct {
 	LatencyMS        int      `json:"latency"`
 	LossPercentage   int      `json:"loss"`
 	Repetitions      int      `json:"repeat"`
-	StabilizationMS  int      `json:"stabilization_wait"`
-	EventWaitMS      int      `json:"event_wait"`
+	StabilizationS   int      `json:"stabilization_wait"`
+	EventWaitS       int      `json:"event_wait"`
 	EventName        string   `json:"event"`
 	AfterEventWaitMS int      `json:"end_wait"`
 	EnvFile          string   `json:"env_file"`
-	Graph            Graph
+	Graph            Graph    `json:"graph"`
 }
 
 func (jp JobPlan) FullName() string {
@@ -117,9 +117,9 @@ func submitJob(experimentName, cluster string) (int, error) {
 }
 
 type Job struct {
-	JobPlan
-	ID   int
-	Host string
+	JobPlan `json:"plan"`
+	ID      int    `json:"id"`
+	Host    string `json:"host"`
 }
 
 func (job Job) setUpNetwork() error {
@@ -301,9 +301,24 @@ func (job Job) runExperimentRepetition(repetition int) error {
 		return errors.Join(err, err2)
 	}
 
-	time.Sleep(60 * time.Second)
+	metadata := ExperimentRunMetadata{Job: job, Repetition: repetition, Events: make([]EventMetadata, 0)}
 
-	// todo:  waits, events, save metadata etc.
+	time.Sleep(time.Duration(job.StabilizationS) * time.Second)
+	metadata.StartExperimentTs = time.Now().UnixNano()
+
+	time.Sleep(time.Duration(job.EventWaitS) * time.Second)
+	metadata.StartEventsTs = time.Now().UnixNano()
+
+	eventsHandler := eventFns[job.EventName]
+	if eventsHandler != nil {
+		metadata.Events = eventsHandler(job)
+	}
+	metadata.StopEventsTs = time.Now().UnixNano()
+
+	time.Sleep(time.Duration(job.AfterEventWaitMS) * time.Second)
+	metadata.StopExperimentTs = time.Now().UnixNano()
+
+	saveExperimentRunMetadata(metadata)
 
 	return stopExperiment(job)
 }

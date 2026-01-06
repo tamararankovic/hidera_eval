@@ -3,8 +3,8 @@ package main
 import "slices"
 
 type Graph struct {
-	Adj [][]int
-	Deg []int
+	Adj [][]int `json:"edges"`
+	Deg []int   `json:"degree"`
 }
 
 func BuildGraph(n, m int) *Graph {
@@ -13,7 +13,7 @@ func BuildGraph(n, m int) *Graph {
 		Deg: make([]int, n),
 	}
 
-	for i := range n-1 {
+	for i := range n - 1 {
 		g.addEdge(i, i+1)
 	}
 
@@ -34,7 +34,6 @@ func (g *Graph) addEdge(u, v int) {
 	g.Deg[u]++
 	g.Deg[v]++
 }
-
 
 func (g *Graph) isNeighbor(u, v int) bool {
 	return slices.Contains(g.Adj[u], v)

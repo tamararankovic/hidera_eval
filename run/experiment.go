@@ -2,7 +2,9 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"strconv"
@@ -39,12 +41,12 @@ func startExperiment(job Job, repetition int) error {
 		name := fmt.Sprintf("%s_%d", protocolName, id)
 		logDirPath := fmt.Sprintf("%s/%s/exp_%d/%s", EXPERIMENT_DATA_BASE_PATH, job.FullName(), repetition, name)
 		envFilePath := fmt.Sprintf("%s/%s/.env", EXPERIMENT_DATA_BASE_PATH, job.FullName())
-		neighborIDs := []string{}
-		neighborIPs := []string{}
-		for _, neighborContainerIdx := range job.Graph.Adj[containerIdx] {
-			neighborID := neighborContainerIdx + 1
-			neighborIDs = append(neighborIDs, strconv.Itoa(neighborID))
-			neighborIPs = append(neighborIPs, IPs[neighborContainerIdx])
+		peerIDs := []string{}
+		peerIPs := []string{}
+		for _, peerContainerIdx := range job.Graph.Adj[containerIdx] {
+			peerID := peerContainerIdx + 1
+			peerIDs = append(peerIDs, strconv.Itoa(peerID))
+			peerIPs = append(peerIPs, IPs[peerContainerIdx])
 		}
 
 		scriptBuilder.WriteString(fmt.Sprintf("mkdir -p %s\n", logDirPath))
@@ -67,8 +69,8 @@ docker run -d \
 %s:latest
 
 `, name, name, id, ip,
-			strings.Join(neighborIDs, ","),
-			strings.Join(neighborIPs, ","),
+			strings.Join(peerIDs, ","),
+			strings.Join(peerIPs, ","),
 			envFilePath,
 			logDirPath,
 			protocolName,
@@ -111,4 +113,52 @@ func stopExperiment(job Job) error {
 			job.FullName(), err)
 	}
 	return nil
+}
+
+type ExperimentRunMetadata struct {
+	Job               Job             `json:"job"`
+	Repetition        int             `json:"repetition"`
+	StartExperimentTs int64           `json:"exp_start_ts"`
+	StartEventsTs     int64           `json:"events_start_ts"`
+	StopEventsTs      int64           `json:"events_stop_ts"`
+	StopExperimentTs  int64           `json:"exp_stop_ts"`
+	Events            []EventMetadata `json:"events"`
+}
+
+type EventMetadata struct {
+	EventTs       int64    `json:"event_ts"`
+	ExpectedValue float64  `json:"expected_value"`
+	IncludeNodes  []string `json:"include_nodes"`
+	ExcludeNodes  []string `json:"exclude_nodes"`
+}
+
+func saveExperimentRunMetadata(metadata ExperimentRunMetadata) {
+	metadataJson, err := json.Marshal(&metadata)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	metadataFilePath := fmt.Sprintf("%s/%s/exp_%d/metadata.json", EXPERIMENT_DATA_BASE_PATH, metadata.Job.FullName(), metadata.Repetition)
+	var script strings.Builder
+	script.WriteString("set -e\n\n")
+
+	script.WriteString(fmt.Sprintf(
+		"cat <<'EOF' > %s\n%s\nEOF\n",
+		metadataFilePath,
+		string(metadataJson),
+	))
+
+	cmd := exec.Command(
+		"ssh", FRONTEND_HOSTNAME,
+		"ssh", "-o", "StrictHostKeyChecking=no", metadata.Job.Host, "bash", "-s",
+	)
+
+	cmd.Stdin = bytes.NewBufferString(script.String())
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		log.Printf("failed to write metadata file for experiment %s: %v\n", metadata.Job.FullName(), err)
+	}
 }
