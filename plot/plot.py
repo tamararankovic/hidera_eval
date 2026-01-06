@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 # Config
 # --------------------------------------------------
 
-# BASE_DIR = "/home/tamara/experiments"
-BASE_DIR = "/Users/tamararankovic/Documents/monitoring/impl/hidera_eval/tmp"
+BASE_DIR = "/home/tamara/experiments"
+# BASE_DIR = "/Users/tamararankovic/Documents/monitoring/impl/hidera_eval/tmp"
 
 PROTOCOLS = ["hi", "fu", "ep", "dd", "rr"]
 COLORS = {

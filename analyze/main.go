@@ -12,8 +12,8 @@ import (
 	"strings"
 )
 
-// const EXPERIMENT_DATA_BASE_PATH = "/home/tamara/experiments"
-const EXPERIMENT_DATA_BASE_PATH = "/Users/tamararankovic/Documents/monitoring/impl/hidera_eval/tmp"
+const EXPERIMENT_DATA_BASE_PATH = "/home/tamara/experiments"
+// const EXPERIMENT_DATA_BASE_PATH = "/Users/tamararankovic/Documents/monitoring/impl/hidera_eval/tmp"
 
 var protocols = []string{"hi", "fu", "ep", "dd", "rr"}
 
