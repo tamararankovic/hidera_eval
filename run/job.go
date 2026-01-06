@@ -295,8 +295,7 @@ func (job Job) writeExperimentEnvFile() error {
 }
 
 func (job Job) runExperimentRepetition(repetition int) error {
-	startFn := startExperimentFns[job.Protocol]
-	err := startFn(job, repetition)
+	err := startExperiment(job, repetition)
 	if err != nil {
 		err2 := stopExperiment(job)
 		return errors.Join(err, err2)

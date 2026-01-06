@@ -18,7 +18,7 @@ const (
 	FRONTEND_HOSTNAME         = "nova_cluster"
 	HOSTNAME                  = "tamara"
 	JOB_STATE_RUNNING         = "R"
-	EXPERIMENT_DATA_BASE_PATH = "/home/tamara/experiments/results"
+	EXPERIMENT_DATA_BASE_PATH = "/home/tamara/experiments"
 )
 
 func main() {
@@ -160,7 +160,7 @@ func runExperiments(jobs []*Job) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	
+
 	wg := &sync.WaitGroup{}
 	for _, job := range jobs {
 		wg.Add(1)
@@ -173,10 +173,13 @@ func buildImages(host string) error {
 	log.Println("*** Building container images ***")
 
 	scriptBuilder := strings.Builder{}
-	scriptBuilder.WriteString(
-		"cd /home/tamara/hidera && docker build -t hidera:latest /home/tamara/hidera\n",
-	)
-	// todo: add others
+
+	for protocol, dir := range protocolDirs {
+		name := protocolNames[protocol]
+		scriptBuilder.WriteString(
+			fmt.Sprintf("docker build -t %s:latest /home/tamara/%s\n", name, dir),
+		)
+	}
 
 	cmd := exec.Command(
 		"ssh", FRONTEND_HOSTNAME,

@@ -9,15 +9,25 @@ import (
 	"strings"
 )
 
-var startExperimentFns = map[Protocol]func(job Job, repetition int) error{
-	PROTOCOL_HIDERA:              startHidera,
-	PROTOCOL_FLOW_UPDATING:       startFlowUpdating,
-	PROTOCOL_EXTREMA_PROPAGATION: startExtremaPropagation,
-	PROTOCOL_RAND_REPORTS:        startRandReports,
-	PROTOCOL_DIGEST_DIFFUSION:    startDigestDiffusion,
+var protocolNames = map[Protocol]string{
+	PROTOCOL_HIDERA:              "hidera",
+	PROTOCOL_FLOW_UPDATING:       "flow_updating",
+	PROTOCOL_EXTREMA_PROPAGATION: "extrema_propagation",
+	PROTOCOL_RAND_REPORTS:        "rand_reports",
+	PROTOCOL_DIGEST_DIFFUSION:    "digest_diffusion",
 }
 
-func startHidera(job Job, repetition int) error {
+var protocolDirs = map[Protocol]string{
+	PROTOCOL_HIDERA:              "hidera",
+	PROTOCOL_FLOW_UPDATING:       "flow_updating",
+	PROTOCOL_EXTREMA_PROPAGATION: "extrema_propagation",
+	PROTOCOL_RAND_REPORTS:        "randomized_reports",
+	PROTOCOL_DIGEST_DIFFUSION:    "digest_diffusion",
+}
+
+func startExperiment(job Job, repetition int) error {
+	protocolName := protocolNames[job.Protocol]
+
 	scriptBuilder := strings.Builder{}
 	scriptBuilder.WriteString("set -e\n\n")
 
@@ -26,7 +36,7 @@ func startHidera(job Job, repetition int) error {
 	for containerIdx := range job.NodesCount {
 		ip := IPs[containerIdx]
 		id := containerIdx + 1
-		name := fmt.Sprintf("hidera_%d", id)
+		name := fmt.Sprintf("%s_%d", protocolName, id)
 		logDirPath := fmt.Sprintf("%s/%s/exp_%d/%s", EXPERIMENT_DATA_BASE_PATH, job.FullName(), repetition, name)
 		envFilePath := fmt.Sprintf("%s/%s/.env", EXPERIMENT_DATA_BASE_PATH, job.FullName())
 		neighborIDs := []string{}
@@ -46,20 +56,23 @@ docker run -d \
 --name %s \
 --hostname %s \
 --network host \
--e LISTEN_HOST=%s \
+--memory 250m \
 -e ID=%d \
+-e LISTEN_IP=%s \
 -e LISTEN_PORT=9000 \
 -e PEER_IDS=%s \
 -e PEER_IPS=%s \
 --env-file "%s" \
--v "%s:/var/log/hidera" \
-hidera:latest
+-v "%s:/var/log/%s" \
+%s:latest
 
-`, name, name, ip, id,
+`, name, name, id, ip,
 			strings.Join(neighborIDs, ","),
 			strings.Join(neighborIPs, ","),
 			envFilePath,
 			logDirPath,
+			protocolName,
+			protocolName,
 		))
 	}
 
@@ -77,26 +90,6 @@ hidera:latest
 			job.FullName(), err)
 	}
 
-	return nil
-}
-
-func startFlowUpdating(job Job, repetition int) error {
-	// todo: add
-	return nil
-}
-
-func startExtremaPropagation(job Job, repetition int) error {
-	// todo: add
-	return nil
-}
-
-func startRandReports(job Job, repetition int) error {
-	// todo: add
-	return nil
-}
-
-func startDigestDiffusion(job Job, repetition int) error {
-	// todo: add
 	return nil
 }
 
@@ -119,5 +112,3 @@ func stopExperiment(job Job) error {
 	}
 	return nil
 }
-
-// todo: exec cmd is all over the place
