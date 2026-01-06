@@ -6,6 +6,7 @@
     "nodes_count": 10,
     "avg_degree": 3,
     "repeat": 1,
+    "expected_value": 5.5,
     "latency": 50,
     "loss": 10,
     "params": "params/hidera.env",

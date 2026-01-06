@@ -39,7 +39,7 @@ func startExperiment(job Job, repetition int) error {
 		ip := IPs[containerIdx]
 		id := containerIdx + 1
 		name := fmt.Sprintf("%s_%d", protocolName, id)
-		logDirPath := fmt.Sprintf("%s/%s/exp_%d/%s", EXPERIMENT_DATA_BASE_PATH, job.FullName(), repetition, name)
+		logDirPath := fmt.Sprintf("%s/%s/exp_%d/node_%d", EXPERIMENT_DATA_BASE_PATH, job.FullName(), repetition, id)
 		envFilePath := fmt.Sprintf("%s/%s/.env", EXPERIMENT_DATA_BASE_PATH, job.FullName())
 		peerIDs := []string{}
 		peerIPs := []string{}
@@ -128,7 +128,6 @@ type ExperimentRunMetadata struct {
 type EventMetadata struct {
 	EventTs       int64    `json:"event_ts"`
 	ExpectedValue float64  `json:"expected_value"`
-	IncludeNodes  []string `json:"include_nodes"`
 	ExcludeNodes  []string `json:"exclude_nodes"`
 }
 
@@ -160,5 +159,30 @@ func saveExperimentRunMetadata(metadata ExperimentRunMetadata) {
 
 	if err := cmd.Run(); err != nil {
 		log.Printf("failed to write metadata file for experiment %s: %v\n", metadata.Job.FullName(), err)
+	}
+}
+
+func analyzePlotAndExport(job Job) {
+	scriptBuilder := strings.Builder{}
+
+	scriptBuilder.WriteString("set -e\n\n")
+	scriptBuilder.WriteString(
+		fmt.Sprintf("cd /home/tamara/hidera_eval/analyze && go run . %s\n", job.ExperimanetName),
+	)
+	scriptBuilder.WriteString(
+		fmt.Sprintf("cd /home/tamara/hidera_eval/plot && source venv/bin/activate && python plot.py  %s\n", job.ExperimanetName),
+	)
+
+	cmd := exec.Command(
+		"ssh", FRONTEND_HOSTNAME,
+		"ssh", "-o", "StrictHostKeyChecking=no", job.Host, "bash", "-s",
+	)
+
+	cmd.Stdin = bytes.NewBufferString(scriptBuilder.String())
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		log.Printf("failed to analzye and plot: %v\n", err)
 	}
 }

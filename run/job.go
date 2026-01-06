@@ -73,6 +73,7 @@ type JobPlan struct {
 	LatencyMS        int      `json:"latency"`
 	LossPercentage   int      `json:"loss"`
 	Repetitions      int      `json:"repeat"`
+	ExpectedValue    float64  `json:"expected_value"`
 	StabilizationS   int      `json:"stabilization_wait"`
 	EventWaitS       int      `json:"event_wait"`
 	EventName        string   `json:"event"`
@@ -117,9 +118,9 @@ func submitJob(experimentName, cluster string) (int, error) {
 }
 
 type Job struct {
-	JobPlan `json:"plan"`
-	ID      int    `json:"id"`
-	Host    string `json:"host"`
+	JobPlan
+	ID   int    `json:"id"`
+	Host string `json:"host"`
 }
 
 func (job Job) setUpNetwork() error {
@@ -319,6 +320,8 @@ func (job Job) runExperimentRepetition(repetition int) error {
 	metadata.StopExperimentTs = time.Now().UnixNano()
 
 	saveExperimentRunMetadata(metadata)
+
+	analyzePlotAndExport(job)
 
 	return stopExperiment(job)
 }
