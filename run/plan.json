@@ -12,7 +12,11 @@
     "params": "params/hidera.env",
     "stabilization_wait": 10,
     "event_wait": 10,
-    "event": "noop",
-    "end_wait": 20
+    "event": "edit_input_continuous",
+    "event_params": {
+      "interval": "2",
+      "total_edits": "2"
+    },
+    "end_wait": 10
   }
 ]

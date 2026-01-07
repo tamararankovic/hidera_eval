@@ -38,7 +38,7 @@ func startExperiment(job Job, repetition int) error {
 	for containerIdx := range job.NodesCount {
 		ip := IPs[containerIdx]
 		id := containerIdx + 1
-		name := fmt.Sprintf("%s_%d", protocolName, id)
+		name := fmt.Sprintf("node_%d", id)
 		logDirPath := fmt.Sprintf("%s/%s/exp_%d/node_%d", EXPERIMENT_DATA_BASE_PATH, job.FullName(), repetition, id)
 		envFilePath := fmt.Sprintf("%s/%s/.env", EXPERIMENT_DATA_BASE_PATH, job.FullName())
 		peerIDs := []string{}
@@ -56,7 +56,6 @@ func startExperiment(job Job, repetition int) error {
 		scriptBuilder.WriteString(fmt.Sprintf(`
 docker run -d \
 --name %s \
---hostname %s \
 --network host \
 --memory 250m \
 -e ID=%d \
@@ -68,7 +67,7 @@ docker run -d \
 -v "%s:/var/log/%s" \
 %s:latest
 
-`, name, name, id, ip,
+`, name, id, ip,
 			strings.Join(peerIDs, ","),
 			strings.Join(peerIPs, ","),
 			envFilePath,

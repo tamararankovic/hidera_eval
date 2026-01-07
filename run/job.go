@@ -65,21 +65,22 @@ func unwindProtocol(protocol Protocol) []Protocol {
 }
 
 type JobPlan struct {
-	OverlayGroup     string   `json:"overlay_group"`
-	Protocol         Protocol `json:"protocol"`
-	ExperimanetName  string   `json:"exp_name"`
-	NodesCount       int      `json:"nodes_count"`
-	AvgDegree        int      `json:"avg_degree"`
-	LatencyMS        int      `json:"latency"`
-	LossPercentage   int      `json:"loss"`
-	Repetitions      int      `json:"repeat"`
-	ExpectedValue    float64  `json:"expected_value"`
-	StabilizationS   int      `json:"stabilization_wait"`
-	EventWaitS       int      `json:"event_wait"`
-	EventName        string   `json:"event"`
-	AfterEventWaitMS int      `json:"end_wait"`
-	EnvFile          string   `json:"params"`
-	Graph            Graph    `json:"graph"`
+	OverlayGroup    string            `json:"overlay_group"`
+	Protocol        Protocol          `json:"protocol"`
+	ExperimanetName string            `json:"exp_name"`
+	NodesCount      int               `json:"nodes_count"`
+	AvgDegree       int               `json:"avg_degree"`
+	LatencyMS       int               `json:"latency"`
+	LossPercentage  int               `json:"loss"`
+	Repetitions     int               `json:"repeat"`
+	ExpectedValue   float64           `json:"expected_value"`
+	StabilizationS  int               `json:"stabilization_wait"`
+	EventWaitS      int               `json:"event_wait"`
+	EventName       string            `json:"event"`
+	EventParams     map[string]string `json:"event_params"`
+	AfterEventWaitS int               `json:"end_wait"`
+	EnvFile         string            `json:"params"`
+	Graph           Graph             `json:"graph"`
 }
 
 func (jp JobPlan) FullName() string {
@@ -316,7 +317,7 @@ func (job Job) runExperimentRepetition(repetition int) error {
 	}
 	metadata.StopEventsTs = time.Now().UnixNano()
 
-	time.Sleep(time.Duration(job.AfterEventWaitMS) * time.Second)
+	time.Sleep(time.Duration(job.AfterEventWaitS) * time.Second)
 	metadata.StopExperimentTs = time.Now().UnixNano()
 
 	saveExperimentRunMetadata(metadata)
